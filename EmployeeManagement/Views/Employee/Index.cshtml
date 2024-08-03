@@ -1,0 +1,134 @@
+﻿@using System.Collections.Generic
+@using EmployeeManagement.Models
+
+
+@{
+    ViewBag.Title = "Employee Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<h2>Employee Management</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Position</th>
+            <th>Office</th>
+            <th>Salary</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="employeeTableBody">
+
+    </tbody>
+</table>
+
+<button id="addEmployeeButton" class="btn btn-primary">Add Employee</button>
+
+<!-- Add Employee Modal -->
+<div id="addEmployeeModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Employee</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addEmployeeForm">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="position">Position</label>
+                        <input type="text" class="form-control" id="position" name="position" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="office">Office</label>
+                        <input type="text" class="form-control" id="office" name="office" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="salary">Salary</label>
+                        <input type="number" class="form-control" id="salary" name="salary" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="saveEmployeeButton" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function () {
+        loadEmployees();
+
+        $('#addEmployeeButton').click(function () {
+            $('#addEmployeeModal').modal('show');
+        });
+
+        $('#saveEmployeeButton').click(function () {
+            if ($('#addEmployeeForm')[0].checkValidity()) {
+                var employee = {
+                    Name: $('#name').val(),
+                    Position: $('#position').val(),
+                    Office: $('#office').val(),
+                    Salary: $('#salary').val()
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/Employee/AddEmployee',
+                    data: employee,
+                    success: function (response) {
+                        $('#addEmployeeModal').modal('hide');
+                        loadEmployees();
+                    }
+                });
+            } else {
+                $('#addEmployeeForm')[0].reportValidity();
+            }
+        });
+
+        function loadEmployees() {
+            $.ajax({
+                type: 'GET',
+                url: '/Employee/GetEmployees',
+                success: function (response) {
+                    var tbody = $('#employeeTableBody');
+                    tbody.empty();
+                    $.each(response, function (i, employee) {
+                        tbody.append('<tr><td>' + employee.Id + '</td><td>' + employee.Name + '</td><td>' + employee.Position + '</td><td>' + employee.Office + '</td><td>' + employee.Salary + '</td><td><button class="btn btn-warning btn-sm edit" data-id="' + employee.Id + '">Edit</button> <button class="btn btn-danger btn-sm delete" data-id="' + employee.Id + '">Delete</button></td></tr>');
+                    });
+
+                    $('.edit').click(function () {
+                        var id = $(this).data('id');
+                        // Handle edit employee
+                    });
+
+                    $('.delete').click(function () {
+                        var id = $(this).data('id');
+                        $.ajax({
+                            type: 'POST',
+                            url: '/Employee/DeleteEmployee',
+                            data: { id: id },
+                            success: function (response) {
+                                loadEmployees();
+                            }
+                        });
+                    });
+                }
+            });
+        }
+    });
+
+</script>
